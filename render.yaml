@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: Tenma-Textures
+    env: docker
+    dockerfilePath: Dockerfile
+    branch: main
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: SECRET_KEY
+        value: replace-me-with-a-secure-value
+      - key: ADMIN_USER
+        value: tenma
+      - key: ADMIN_PASS
+        value: deyvison
+services:
+  - type: web
+    name: tenma-textures
+    env: python
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app -b 0.0.0.0:$PORT
+    envVars:
+      - key: SECRET_KEY
+        value: mude-esta-chave-em-producao
+    autoDeploy: true
+    pullRequestPreviewsEnabled: false

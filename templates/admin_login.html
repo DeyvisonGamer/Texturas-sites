@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+{% block content %}
+  <h2>Admin — Entrar</h2>
+  <form method="post" class="form">
+    <label>Usuário</label>
+    <input name="username" required>
+    <label>Senha</label>
+    <input name="password" type="password" required>
+    <button class="btn" type="submit">Entrar</button>
+  </form>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block content %}
+  <h2>Envie uma sugestão</h2>
+  <p>Você pode enviar sugestões anonimamente.</p>
+  <form method="post" class="form">
+    <label>Mensagem</label>
+    <textarea name="suggestion" required></textarea>
+    <button class="btn" type="submit">Enviar sugestão</button>
+  </form>
+{% endblock %}

@@ -1,0 +1,15 @@
+venv/
+__pycache__/
+*.py[cod]
+instance/
+.env
+uploads/
+data/
+.vscode/
+*.sqlite3
+env/
+pip-log.txt
+dist/
+build/
+.pytest_cache/
+nohup.out

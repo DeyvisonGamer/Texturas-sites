@@ -1,0 +1,25 @@
+:root{
+  --blue:#2b6ef6;
+  --purple:#7b5cff;
+  --white:#ffffff;
+  --grey:#f2f4f7;
+  --dark:#0f1720;
+}
+*{box-sizing:border-box;font-family:Inter, system-ui, Arial, sans-serif}
+body{margin:0;background:linear-gradient(180deg,var(--grey),#eef2ff);color:var(--dark)}
+.container{max-width:980px;margin:24px auto;padding:0 16px}
+.site-header{background:var(--white);border-bottom:1px solid #e6e6e6}
+.site-header .container{display:flex;align-items:center;justify-content:space-between;padding:12px 16px}
+.logo{font-weight:700;color:var(--dark);text-decoration:none}
+nav a{margin-left:14px;color:var(--dark);text-decoration:none}
+.hero{text-align:center;padding:40px 0}
+.lead{color:#333;margin-top:8px}
+.card{background:var(--white);padding:16px;border-radius:8px;box-shadow:0 6px 18px rgba(15,23,32,0.06);margin:16px 0}
+.btn{display:inline-block;background:var(--blue);color:var(--white);padding:8px 14px;border-radius:8px;text-decoration:none;border:none}
+.form input,.form textarea{width:100%;padding:8px;margin:6px 0;border:1px solid #ddd;border-radius:6px}
+.site-footer{padding:18px 0;text-align:center;color:#666}
+.messages .flash{padding:8px;margin:8px 0;border-radius:6px}
+.flash.success{background:#e6fff6;border:1px solid #b6efd9}
+.flash.danger{background:#ffecee;border:1px solid #ffbdbd}
+.flash.warning{background:#fff7e6;border:1px solid #ffdca8}
+.btn.small{padding:4px 8px;font-size:13px}
