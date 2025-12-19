@@ -4,7 +4,7 @@ Projeto mínimo para hospedar e gerenciar uma textura Minecraft chamada "Tenma".
 
 Funcionalidades:
 - Página pública com botão de download (.zip)
-- Área admin com login (usuario: `tenma`, senha: `deyvison`)
+- Área admin com login
 - Upload de .zip pelo painel admin
 - Registro de versões em `data/versions.json`
 - Seção de sugestões (anônimas) armazenadas em `data/suggestions.json`
@@ -23,8 +23,6 @@ python3 app.py
 
 Admin:
 - URL: http://localhost:5000/admin
-- Usuário: `tenma`
-- Senha: `deyvison`
 
 Observações para Github:
 - Este projeto é um app Flask; GitHub Pages não executa Flask. Para hospedar grátis, use Render, Railway ou templates de GitHub Actions + um serviço de container.
