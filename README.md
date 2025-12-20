@@ -1,6 +1,6 @@
-# Tenma Textures — Painel e site
+# Darkness Light Textures — Painel e site
 
-Projeto mínimo para hospedar e gerenciar uma textura Minecraft chamada "Tenma".
+Projeto mínimo para hospedar e gerenciar uma textura Minecraft chamada "Darkness Light 32x".
 
 Funcionalidades:
 - Página pública com botão de download (.zip)
@@ -28,5 +28,5 @@ Observações para Github:
 - Este projeto é um app Flask; GitHub Pages não executa Flask. Para hospedar grátis, use Render, Railway ou templates de GitHub Actions + um serviço de container.
 
 Licença e Copyright
-- © Tenma Textures — Deyvison (cofundador & desenvolvedor) & Tenma (fundador & design) — desde 2025
+- © Darkness Light Textures — Deyvison (cofundador & desenvolvedor) & Tenma (fundador & design) — desde 2025
 # Texturas-sites
