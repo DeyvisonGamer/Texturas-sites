@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin - Anúncios</title>
+  <style>
+    body { font-family: system-ui, Arial; max-width:820px; margin:24px auto; padding:0 16px; }
+    label { display:block; margin-top:12px; font-weight:600; }
+    input[type="text"], select { width:100%; padding:8px; margin-top:6px; box-sizing:border-box; }
+    .row { display:flex; gap:8px; margin-top:12px; }
+    .btn { padding:10px 16px; border:0; cursor:pointer; background:#0366d6; color:#fff; border-radius:6px; }
+    .muted { color:#666; font-size:13px; margin-top:6px; }
+  </style>
+</head>
+<body>
+  <h2>Gerenciar Anúncios</h2>
+  <p class="muted"><strong>Atenção:</strong> proteja esta página com autenticação (não implementado aqui).</p>
+
+  <form id="adForm">
+    <label for="image_url">URL da imagem (obrigatório)</label>
+    <input id="image_url" type="text" placeholder="https://.../banner.jpg" required />
+
+    <label for="target_url">URL de destino (obrigatório)</label>
+    <input id="target_url" type="text" placeholder="https://seusite.com" required />
+
+    <label for="alt">Texto alternativo (alt)</label>
+    <input id="alt" type="text" placeholder="Descrição curta" />
+
+    <label for="position">Posição (ex: sidebar, header, footer)</label>
+    <input id="position" type="text" placeholder="sidebar" />
+
+    <label style="margin-top:10px;">
+      <input id="active" type="checkbox" checked /> Ativo
+    </label>
+
+    <div class="row">
+      <button class="btn" type="submit">Salvar anúncio</button>
+      <button class="btn" type="button" onclick="window.location.href='/'">Voltar</button>
+    </div>
+  </form>
+
+  <script src="/js/ads.js"></script>
+</body>
+</html>

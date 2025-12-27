@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Adicionar link de download</title>
+  <style>
+    body { font-family: system-ui, Arial; max-width:720px; margin:32px auto; padding:0 16px; }
+    label { display:block; margin-top:12px; font-weight:600; }
+    input[type="text"] { width:100%; padding:8px; margin-top:6px; box-sizing:border-box; }
+    .row { display:flex; gap:8px; margin-top:12px; }
+    .btn { padding:10px 16px; border:0; cursor:pointer; background:#0366d6; color:#fff; border-radius:6px; }
+    .btn.secondary { background:#6c757d; }
+    .download-preview { margin-top:18px; padding:12px; border:1px solid #e1e4e8; border-radius:8px; }
+    .hint { font-size:13px; color:#555; margin-top:8px; }
+  </style>
+</head>
+<body>
+  <h2>Adicionar link de download externo (substitui upload .zip)</h2>
+
+  <label for="title">Título (opcional)</label>
+  <input id="title" type="text" placeholder="Nome da textura / pacote">
+
+  <label for="url">Link de download (MediaFire / Mega / Drive / outro)</label>
+  <input id="url" type="text" placeholder="https://www.mediafire.com/file/..." />
+
+  <div class="row">
+    <button id="addBtn" class="btn">Adicionar/Mostrar botão de download</button>
+    <button id="clearBtn" class="btn secondary" type="button">Limpar</button>
+  </div>
+
+  <div id="preview" class="download-preview" style="display:none;">
+    <strong id="previewTitle"></strong>
+    <div style="margin-top:8px;">
+      <a id="downloadBtn" class="btn" href="#" target="_blank" rel="noopener noreferrer">Download</a>
+      <button id="editBtn" class="btn secondary" style="margin-left:8px;">Editar</button>
+    </div>
+    <p id="urlText" class="hint"></p>
+  </div>
+
+  <script src="/js/external-download.js"></script>
+</body>
+</html>
