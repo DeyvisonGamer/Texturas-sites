@@ -1,30 +1,11 @@
 import os
 import json
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, flash
-from werkzeug.exceptions import RequestEntityTooLarge
-from werkzeug.utils import secure_filename
-DATA_FOLDER = os.path.join(APP_ROOT, 'data')
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(DATA_FOLDER, exist_ok=True)
-
-VERSIONS_FILE = os.path.join(DATA_FOLDER, 'versions.json')
-SUGGESTIONS_FILE = os.path.join(DATA_FOLDER, 'suggestions.json')
-
-ADMIN_USER = 'tenma'
-ADMIN_PASS = 'deyvison'
-
-ALLOWED_EXT = {'zip'}
-
-app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.secret_key = 'mude-esta-chave-em-producao'
-import os
-import json
-from datetime import datetime
+from urllib.parse import urlparse
 from flask import (
     Flask,
     render_template,
+    render_template_string,
     request,
     redirect,
     url_for,
@@ -32,8 +13,6 @@ from flask import (
     send_from_directory,
     flash,
 )
-from werkzeug.utils import secure_filename
-from werkzeug.exceptions import RequestEntityTooLarge
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(APP_ROOT, 'uploads')
@@ -43,18 +22,14 @@ os.makedirs(DATA_FOLDER, exist_ok=True)
 
 VERSIONS_FILE = os.path.join(DATA_FOLDER, 'versions.json')
 SUGGESTIONS_FILE = os.path.join(DATA_FOLDER, 'suggestions.json')
+METADATA_FILE = os.path.join(DATA_FOLDER, 'metadata.json')
 
 ADMIN_USER = os.environ.get('ADMIN_USER', 'tenma')
 ADMIN_PASS = os.environ.get('ADMIN_PASS', 'deyvison')
 
-ALLOWED_EXT = {'zip'}
-
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-# use environment secret if provided
 app.secret_key = os.environ.get('SECRET_KEY', 'mude-esta-chave-em-producao')
-# Limite máximo de upload: 1 GB
-app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024 * 1024
 
 
 def read_json(path, default):
@@ -70,13 +45,17 @@ def write_json(path, data):
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXT
+def is_valid_url(url):
+    try:
+        p = urlparse(url)
+        return p.scheme in ("http", "https") and bool(p.netloc)
+    except Exception:
+        return False
 
 
-@app.errorhandler(RequestEntityTooLarge)
+@app.errorhandler(413)
 def handle_file_too_large(error):
-    flash('Arquivo muito grande. O limite é de 1 GB. Envie um arquivo menor.', 'danger')
+    flash('Arquivo muito grande ou solicitação inválida.', 'danger')
     return redirect(request.referrer or url_for('admin_dashboard'))
 
 
@@ -89,12 +68,31 @@ def index():
 
 @app.route('/download')
 def download():
+    # If a specific name is requested, try to find it; otherwise use latest
+    name = request.args.get('name')
     versions = read_json(VERSIONS_FILE, [])
     if not versions:
         flash('Nenhuma textura disponível para download.', 'warning')
         return redirect(url_for('index'))
-    latest = versions[-1]
-    return send_from_directory(app.config['UPLOAD_FOLDER'], latest['filename'], as_attachment=True)
+
+    if name:
+        v = next((x for x in versions if x.get('filename') == name or x.get('url') == name), None)
+        if not v:
+            flash('Versão não encontrada.', 'warning')
+            return redirect(url_for('admin_dashboard'))
+    else:
+        v = versions[-1]
+
+    # Prefer URL entries (new format)
+    if v.get('url'):
+        return redirect(v['url'])
+
+    # Backwards compatibility: serve local file if present
+    if v.get('filename'):
+        return send_from_directory(app.config['UPLOAD_FOLDER'], v['filename'], as_attachment=True)
+
+    flash('Versão inválida.', 'warning')
+    return redirect(url_for('index'))
 
 
 @app.route('/suggest', methods=['GET', 'POST'])
@@ -160,19 +158,23 @@ def admin_dashboard():
 def admin_upload():
     texture_name = request.form.get('texture_name', 'Tenma').strip()
     version = request.form.get('version', '').strip()
-    file = request.files.get('file')
-    if not file or not allowed_file(file.filename):
-        flash('Envie um arquivo .zip válido.', 'danger')
+    file_url = request.form.get('file_url', '').strip()
+
+    if not file_url or not is_valid_url(file_url):
+        flash('Informe uma URL válida (iniciando com http:// ou https://).', 'danger')
         return redirect(url_for('admin_dashboard'))
-    filename = secure_filename(file.filename)
-    ts = datetime.utcnow().strftime('%Y%m%d%H%M%S')
-    stored = f"{os.path.splitext(filename)[0]}_{ts}.zip"
-    path = os.path.join(app.config['UPLOAD_FOLDER'], stored)
-    file.save(path)
+
+    entry = {
+        'name': texture_name,
+        'version': version,
+        'url': file_url,
+        'uploaded_at': datetime.utcnow().isoformat(),
+    }
+
     versions = read_json(VERSIONS_FILE, [])
-    versions.append({'name': texture_name, 'version': version, 'filename': stored, 'uploaded_at': datetime.utcnow().isoformat()})
+    versions.append(entry)
     write_json(VERSIONS_FILE, versions)
-    flash('Textura enviada com sucesso.', 'success')
+    flash('Versão registrada com sucesso (via link).', 'success')
     return redirect(url_for('admin_dashboard'))
 
 
@@ -187,8 +189,10 @@ def delete_suggestion(idx):
     return redirect(url_for('admin_dashboard'))
 
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=True)
+# Ensure data files exist with sane defaults
+default_metadata = {
+    'name': 'Tenma Texture',
+    'description': 'Textura minimalista Minecraft',
     'updated_at': '',
     'filename': ''
 }
@@ -196,115 +200,9 @@ if not os.path.exists(METADATA_FILE):
     write_json(METADATA_FILE, default_metadata)
 if not os.path.exists(SUGGESTIONS_FILE):
     write_json(SUGGESTIONS_FILE, [])
-
-
-@app.route('/')
-def index():
-    meta = read_json(METADATA_FILE, default_metadata)
-    # Serve static index.html; inject metadata via a tiny template
-    with open(os.path.join(app.static_folder, 'index.html'), 'r', encoding='utf-8') as f:
-        html = f.read()
-    html = html.replace('<!--METADATA-->', json.dumps(meta))
-    return render_template_string(html)
-
-
-@app.route('/about')
-def about():
-    return app.send_static_file('about.html')
-
-
-@app.route('/suggestions')
-def suggestions_page():
-    return app.send_static_file('suggestions.html')
-
-
-@app.route('/api/suggest', methods=['POST'])
-def api_suggest():
-    data = read_json(SUGGESTIONS_FILE, [])
-    text = request.form.get('text', '').strip()
-    if text:
-        data.append({'text': text, 'at': datetime.utcnow().isoformat()})
-        write_json(SUGGESTIONS_FILE, data)
-        return jsonify({'ok': True})
-    return jsonify({'ok': False, 'error': 'empty'})
-
-
-@app.route('/download')
-def download():
-    meta = read_json(METADATA_FILE, default_metadata)
-    fname = meta.get('filename')
-    if not fname:
-        return 'Nenhum arquivo disponível', 404
-    return send_from_directory(UPLOAD_FOLDER, fname, as_attachment=True)
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        user = request.form.get('username')
-        pwd = request.form.get('password')
-        if user == ADMIN_USER and pwd == ADMIN_PASS:
-            session['admin'] = True
-            return redirect(url_for('admin'))
-        return 'Credenciais inválidas', 403
-    return app.send_static_file('login.html')
-
-
-@app.route('/logout')
-def logout():
-    session.pop('admin', None)
-    return redirect(url_for('index'))
-
-
-def admin_required(fn):
-    from functools import wraps
-
-    @wraps(fn)
-    def wrapper(*a, **k):
-        if not session.get('admin'):
-            return redirect(url_for('login'))
-        return fn(*a, **k)
-
-    return wrapper
-
-
-@app.route('/admin')
-@admin_required
-def admin():
-    return app.send_static_file('admin.html')
-
-
-@app.route('/admin/upload', methods=['POST'])
-@admin_required
-def admin_upload():
-    file = request.files.get('texture_zip')
-    name = request.form.get('name', 'Tenma')
-    version = request.form.get('version', '')
-    release_time = request.form.get('release_time', '')
-    if not file:
-        return 'Nenhum arquivo', 400
-    # save file
-    timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
-    safe_name = f"{timestamp}_{file.filename}"
-    path = os.path.join(UPLOAD_FOLDER, safe_name)
-    file.save(path)
-    # update metadata
-    meta = {
-        'name': name,
-        'version': version or read_json(METADATA_FILE, default_metadata).get('version', ''),
-        'updated_at': release_time or datetime.utcnow().isoformat(),
-        'filename': safe_name
-    }
-    write_json(METADATA_FILE, meta)
-    return redirect(url_for('admin'))
-
-
-@app.route('/admin/suggestions')
-@admin_required
-def admin_suggestions():
-    data = read_json(SUGGESTIONS_FILE, [])
-    return jsonify(data)
+if not os.path.exists(VERSIONS_FILE):
+    write_json(VERSIONS_FILE, [])
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=True)
