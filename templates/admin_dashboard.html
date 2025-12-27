@@ -2,16 +2,21 @@
 {% block content %}
   <h2>Painel Admin</h2>
   <p>Bem-vindo, Tenma (usuário admin padrão).</p>
+
   <section class="card">
-    <h3>Upload de textura (.zip)</h3>
-    <form method="post" action="/admin/upload" enctype="multipart/form-data" class="form">
+    <h3>Registrar textura — informar link</h3>
+    <form method="post" action="/admin/upload" class="form">
       <label>Nome da textura</label>
       <input name="texture_name" value="Tenma">
       <label>Versão</label>
       <input name="version" placeholder="ex: 1.0.0">
-      <label>Arquivo (.zip)</label>
-      <input type="file" name="file" accept=".zip" required>
-      <button class="btn" type="submit">Enviar</button>
+
+      <label>Link do arquivo (http/https)</label>
+      <input name="file_url" placeholder="https://exemplo.com/minha-textura.zip" required>
+
+      <p class="muted">Informe um link público para o arquivo. O sistema salvará o link e o botão de download redirecionará para ele.</p>
+
+      <button class="btn" type="submit">Registrar</button>
     </form>
   </section>
 
@@ -20,7 +25,14 @@
     {% if versions %}
       <ul>
         {% for v in versions %}
-          <li>{{ v.name }} — {{ v.version or 'sem versão' }} — {{ v.uploaded_at }} — <a href="/download">download</a></li>
+          <li>
+            {{ v.name }} — {{ v.version or 'sem versão' }} — {{ v.uploaded_at }} —
+            {% if v.url %}
+              <a href="{{ v.url }}" target="_blank" rel="noopener">download (link)</a>
+            {% else %}
+              <span>download (local) — compatibilidade</span>
+            {% endif %}
+          </li>
         {% endfor %}
       </ul>
     {% else %}
